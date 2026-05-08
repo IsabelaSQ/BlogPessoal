@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { JwtService } from '@nestjs/jwt';
 import { UsuarioService } from './../../usuario/services/usuario.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -23,31 +26,27 @@ export class AuthService {
       buscaUsuario.senha,
     );
 
-    if (buscaUsuario && matchPassword) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { senha, ...resposta } = buscaUsuario;
-      return resposta;
-    }
+    if (!matchPassword)
+      throw new HttpException('Senha incorreta!', HttpStatus.UNAUTHORIZED);
 
-    return null;
+    const { senha, ...resposta } = buscaUsuario;
+    return resposta;
   }
 
   async login(usuarioLogin: UsuarioLogin) {
-    const payload = { sub: usuarioLogin.usuario };
-
-    const buscaUsuario = await this.usuarioService.findByUsuario(
+    const usuarioValidado = await this.validateUser(
       usuarioLogin.usuario,
+      usuarioLogin.senha,
     );
 
-    if (!buscaUsuario)
-      throw new HttpException('Usuário não encontrado!', HttpStatus.NOT_FOUND);
+    const payload = { sub: usuarioValidado.usuario };
 
     return {
-      id: buscaUsuario.id,
-      nome: buscaUsuario.nome,
-      usuario: usuarioLogin.usuario,
+      id: usuarioValidado.id,
+      nome: usuarioValidado.nome,
+      usuario: usuarioValidado.usuario,
       senha: '',
-      foto: buscaUsuario.foto,
+      foto: usuarioValidado.foto,
       token: `Bearer ${this.jwtService.sign(payload)}`,
     };
   }
