@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Delete,
   UseGuards,
 } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
@@ -45,5 +46,12 @@ export class UsuarioController {
   @HttpCode(HttpStatus.OK)
   async update(@Body() usuario: Usuario): Promise<Usuario> {
     return this.usuarioService.update(usuario);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/deletar/:id')
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.usuarioService.delete(id);
   }
 }
